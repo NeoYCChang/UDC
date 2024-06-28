@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from pixel_shuffler import PixelShuffler
 
 # Weights initializer for the layers.
 kernel_init = keras.initializers.RandomNormal(mean=0.0, stddev=0.02)
@@ -193,7 +194,8 @@ def createFullModel(
     x_24 = layers.Activation("relu")(x_24)
     #independent
         
-    x_30 = upsample(x_24, filters=filters, kernel_size=(3, 3) ,activation=layers.Activation("relu"))
+    #x_30 = upsample(x_24, filters=filters, kernel_size=(3, 3) ,activation=layers.Activation("relu"))
+    x_30 = PixelShuffler((2, 2))(x_24)
     x_31 = samesample_1_dim(x_05, filters=filters/2, kernel_size=(7, 1) ,activation=layers.Activation("relu"))
     x_32 = samesample_1_dim(x_05, filters=filters/2, kernel_size=(5, 1) ,activation=layers.Activation("relu"))
     x_33 = samesample_2_dim(x_05, filters=filters/4, kernel_size=(3, 3) ,activation=layers.Activation("relu"))
@@ -208,7 +210,8 @@ def createFullModel(
     
     x_39 = layers.Concatenate()([x_36, x_37, x_38])
     
-    x_40 = upsample(x_39, filters=filters, kernel_size=(3, 3) ,activation=layers.Activation("relu"))
+    #x_40 = upsample(x_39, filters=filters, kernel_size=(3, 3) ,activation=layers.Activation("relu"))
+    x_40 = PixelShuffler((2, 2))(x_39)
     
     x_41 = samesample_1_dim(x_40, filters=filters/2, kernel_size=(11, 1) ,activation=layers.Activation("relu"))
     x_42 = samesample_1_dim(x_40, filters=filters/4, kernel_size=(7, 1) ,activation=layers.Activation("relu"))
@@ -304,11 +307,10 @@ def createModel(input_img_size = (640, 480, 3)):
         sub_layer = samesample_2_dim(sub_layer, filters=3, kernel_size=(1, 1) ,activation=layers.Activation("sigmoid"))
         sub_model = keras.models.Model(fullmodel.input, sub_layer)
 
-    sub_model.summary()
     myModel = MyModel(
         full_model = fullmodel, sub_model = sub_model
     )
-
+    fullmodel.summary()
 
     return myModel
         
